@@ -1,6 +1,5 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from mangum import Mangum
 
 app = FastAPI()
 
@@ -30,5 +29,3 @@ app.add_middleware(
 def home():
     return {'message':'hellow'}
 
-
-handler = Mangum(app)
