@@ -6,7 +6,7 @@ Base = declarative_base()
 
 class Course(Base):
     __tablename__ = 'course'
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True,autoincrement=True)
     name = Column(String(100), nullable=False)
     description = Column(String(200), nullable=False)
     
