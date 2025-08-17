@@ -10,4 +10,4 @@ class CourseResponse(BaseModel):
     description: str
 
     class Config:
-        orm_mode = True  # enables conversion from SQLAlchemy model
+        from_attributes = True  # enables conversion from SQLAlchemy model
