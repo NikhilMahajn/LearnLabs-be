@@ -1,4 +1,3 @@
-from main import app
 from fastapi.middleware.cors import CORSMiddleware
 
 origins = [
@@ -6,12 +5,12 @@ origins = [
     "http://127.0.0.1:8000",
     "https://learn-labs-fe.vercel.app"
 ]
-
-app.add_middleware(
-    CORSMiddleware,
-	allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+def setup_cors(app):
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=origins,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
 )
 
