@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from router.course import course_router
+from .router.course import course_router
 app = FastAPI()
 
 app.include_router(course_router)

@@ -1,6 +1,6 @@
 from .db import session
 from .models import Course
-from schemas.course import CourseCreate
+from app.schemas.course import CourseCreate
 
 
 def create_course(course : CourseCreate):
@@ -10,3 +10,8 @@ def create_course(course : CourseCreate):
     
     session.refresh(new_course) 
     return new_course
+
+def list_courses():
+    courses = session.query(Course).all()
+    return courses
+    
