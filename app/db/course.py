@@ -1,14 +1,15 @@
 from .db import session
-from app.schemas.course import CourseOutline,Chapter as ChapterSchema
-from .models import Course,Chapter
+from app.schemas.course import CourseOutline,Chapter,DetailedChapter
+from .models import Course,Chapter,Section
 
 
 def create_course(course:CourseOutline):
     new_course = Course(
         title=course.course_title,
-        description=CourseOutline.course_description,
-        level=CourseOutline.level,
-        duration=CourseOutline.duration
+        description=course.course_description,
+        level=course.level,
+        duration=course.duration,
+        total_chapters = course.total_chapters
     )
     session.add(new_course)
     session.commit()
@@ -17,19 +18,32 @@ def create_course(course:CourseOutline):
     return new_course
 
 def list_courses():
-    courses = session.query(Course).all()
+    courses = session.query(CourseOutline).all()
     return courses
     
-def create_chapter(Course_id,ChapterSchema):
+def create_chapter(Course_id,chapter,chapter_content:DetailedChapter):
     
     new_chapter = Chapter(
-        chapter_number=ChapterSchema.chapter_number,
-        title=ChapterSchema.title,
-        description = ChapterSchema.description,
-        estimated_duration= ChapterSchema.estimated_duration,
+        chapter_number=chapter.chapter_number,
+        title=chapter.title,
+        description = chapter.description,
+        estimated_duration= chapter.estimated_duration,
         course_id = Course_id
+    )
+    
+    for section in chapter_content.sections:
+        
+        new_section = Section(
+                type=section.type,
+                title=section.title,
+                content=section.content,
+                language=section.language,
+                explanation=section.explanation,
+                chapter_id=new_chapter.id
         )
-
+        session.add(new_section)
+        session.commit()
+        
     session.add(new_chapter)
     session.commit()
     

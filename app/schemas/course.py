@@ -2,7 +2,7 @@ from pydantic import BaseModel,Field
 from typing import List
 import json
 from langchain.schema import BaseOutputParser
-
+from enum import Enum
 from typing import List, Dict, Any, Optional
         
 class SectionType(str, Enum):
@@ -45,7 +45,13 @@ class CourseOutline(BaseModel):
     duration: int   = Field(description="Time required to complete the course in Minutes")
     chapters: List[Chapter] = Field(description="List of chapters")
     
-    
+class CourseCreateRequest(BaseModel):
+    name: str
+    target_audiunce: str
+    difficulty: str
+    duration: str
+    description: str | None = None  # optional
+
 class CourseResponse(BaseModel):
     id: int
     name: str
