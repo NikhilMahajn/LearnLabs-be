@@ -18,7 +18,7 @@ def create_course(course:CourseOutline):
     return new_course
 
 def list_courses():
-    courses = session.query(CourseOutline).all()
+    courses = session.query(Course).all()
     return courses
     
 def create_chapter(Course_id,chapter,chapter_content:DetailedChapter):
