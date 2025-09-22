@@ -54,7 +54,7 @@ class CourseCreateRequest(BaseModel):
 
 class CourseResponse(BaseModel):
     id: int
-    name: str
+    title: str
     description: str
 
     class Config:
