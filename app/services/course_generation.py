@@ -111,7 +111,6 @@ def generate_course_handler(course):
         chapter_content = generate_chapter_content(chapter)
         create_chapter(course_obj.id, chapter, chapter_content)
         logger.info(f"Saved chapter {chapter.chapter_number} ('{chapter.title}') to DB")
-        break  # remove break if you want all chapters expanded
 
     logger.info(f"Course generation complete for: {course.name}")
     return course_obj

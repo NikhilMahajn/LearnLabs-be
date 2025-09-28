@@ -1,5 +1,5 @@
 from .db import session
-from app.schemas.course import CourseOutline,Chapter,DetailedChapter
+from app.schemas.course import CourseOutline,Chapter,DetailedChapter,Section
 from .models import Course,Chapter,Section
 
 
@@ -31,6 +31,9 @@ def create_chapter(Course_id,chapter,chapter_content:DetailedChapter):
         course_id = Course_id
     )
     
+    session.add(new_chapter)
+    session.commit()
+    
     for section in chapter_content.sections:
         
         new_section = Section(
@@ -44,16 +47,19 @@ def create_chapter(Course_id,chapter,chapter_content:DetailedChapter):
         session.add(new_section)
         session.commit()
         
-    session.add(new_chapter)
-    session.commit()
-    
     session.refresh(new_chapter) 
     return new_chapter
+
 def get_course(course_id):
     course = session.query(Course).filter(Course.id == course_id).first()
     return course
+
 def get_chapters(course_id):
-    
     chapters = session.query(Chapter).filter(Chapter.course_id == course_id).all()
-    
+
     return chapters
+
+def get_sections(chapter_id):
+    print("searching chapter id",chapter_id)
+    sections = session.query(Section).filter(Section.chapter_id == chapter_id).all()
+    return sections
