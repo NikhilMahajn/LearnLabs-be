@@ -59,3 +59,12 @@ class CourseResponse(BaseModel):
 
     class Config:
         from_attributes = True  # enables conversion from SQLAlchemy model
+        
+class ChapterResponse(BaseModel):
+    id :int
+    chapter_number : int
+    title : str
+    description : str
+    estimated_duration : int
+    course_id : int
+

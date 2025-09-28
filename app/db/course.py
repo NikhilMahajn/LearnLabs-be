@@ -49,5 +49,11 @@ def create_chapter(Course_id,chapter,chapter_content:DetailedChapter):
     
     session.refresh(new_chapter) 
     return new_chapter
-
+def get_course(course_id):
+    course = session.query(Course).filter(Course.id == course_id).first()
+    return course
+def get_chapters(course_id):
     
+    chapters = session.query(Chapter).filter(Chapter.course_id == course_id).all()
+    
+    return chapters

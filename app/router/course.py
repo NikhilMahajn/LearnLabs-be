@@ -1,6 +1,6 @@
 from fastapi import APIRouter,Response
-from app.schemas.course import CourseCreateRequest,CourseResponse
-from app.db.course import create_course,list_courses
+from app.schemas.course import CourseCreateRequest,CourseResponse,ChapterResponse
+from app.db.course import list_courses,get_course,get_chapters
 from app.services.course_generation import generate_course_handler
 
 
@@ -14,7 +14,15 @@ def create(course: CourseCreateRequest):
     return Response('Course Generation Successfull')
 
 @course_router.get('/')
-def list():
+def get_courses():
     return list_courses()
 
+@course_router.get('/{course_id}')
+def get_course_by_id(course_id):
+    response = get_course(course_id)
+    return response
     
+@course_router.get('/chapters/{course_id}')
+def get_chapters_by_course(course_id:int):
+    response = get_chapters(course_id)
+    return response
