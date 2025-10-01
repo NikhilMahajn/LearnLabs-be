@@ -1,11 +1,10 @@
-from sqlalchemy import Column,Text, Integer, String, ForeignKey, Date, DateTime, Enum, JSON, Float, Boolean, UniqueConstraint
+from sqlalchemy import (
+    Column, Integer, String, ForeignKey, Text,
+    Date, DateTime, Enum, JSON, Float, Boolean,
+    UniqueConstraint
+)
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship, backref
-
-Base = declarative_base()
-
-from sqlalchemy import Column, Integer, String, ForeignKey, Text, Table
-from sqlalchemy.orm import relationship, declarative_base
+from sqlalchemy.orm import relationship
 
 Base = declarative_base()
 
@@ -18,7 +17,12 @@ class Course(Base):
     total_chapters = Column(Integer)
     duration = Column(Integer)
 
-    chapters = relationship("Chapter", back_populates="course")
+    chapters = relationship(
+        "Chapter",
+        back_populates="course",
+        cascade="all, delete-orphan",
+        passive_deletes=True
+    )
 
 class Chapter(Base):
     __tablename__ = "chapters"
@@ -27,10 +31,20 @@ class Chapter(Base):
     title = Column(String)
     description = Column(Text)
     estimated_duration = Column(Integer)
-    course_id = Column(Integer, ForeignKey("courses.id"))
+    course_id = Column(Integer, ForeignKey("courses.id", ondelete="CASCADE"))
 
-    course = relationship("Course", back_populates="chapters")
-    sections = relationship("Section", back_populates="chapter")
+    course = relationship(
+        "Course",
+        back_populates="chapters",
+        passive_deletes=True
+    )
+
+    sections = relationship(
+        "Section",
+        back_populates="chapter",
+        cascade="all, delete-orphan",
+        passive_deletes=True
+    )
 
 class Section(Base):
     __tablename__ = "sections"
@@ -40,6 +54,10 @@ class Section(Base):
     content = Column(Text)
     language = Column(String, nullable=True)
     explanation = Column(Text, nullable=True)
-    chapter_id = Column(Integer, ForeignKey("chapters.id"))
+    chapter_id = Column(Integer, ForeignKey("chapters.id", ondelete="CASCADE"))
 
-    chapter = relationship("Chapter", back_populates="sections")
+    chapter = relationship(
+        "Chapter",
+        back_populates="sections",
+        passive_deletes=True
+    )
