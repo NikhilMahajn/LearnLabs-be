@@ -49,7 +49,6 @@ def get_sections_by_chapter(chapter_id:int):
         raise HTTPException(status_code=400, detail="chapter_id cannot be null")
     try:
         response = get_sections(chapter_id)
-        print(response)
         if not response:
             raise HTTPException(status_code=404, detail="No chapters found for this course")
         return response
