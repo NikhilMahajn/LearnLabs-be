@@ -1,6 +1,9 @@
 from langchain_groq import ChatGroq
 from langchain_core.prompts import ChatPromptTemplate
 from langchain.output_parsers import PydanticOutputParser
+from langchain.output_parsers import OutputFixingParser
+
+import asyncio
 
 from app.schemas.course import CourseOutline,DetailedChapter
 from app.db.course import create_course,create_chapter
@@ -55,11 +58,11 @@ def generate_course_outline(name, target_audiunce="Beginner", difficulty="Easy",
 
 def generate_chapter_content(chapter):
     logger.info(f"Expanding chapter {chapter.chapter_number}: '{chapter.title}'")
-
+    
     parser = PydanticOutputParser(pydantic_object=DetailedChapter)
-
+    
     prompt_template = ChatPromptTemplate.from_messages([
-        ("system", """You are an expert programming instructor. 
+        ("system", """You are an expert programming instructor.
         Your task is to expand a course chapter into detailed lesson sections.
 
         Guidelines:
@@ -69,10 +72,15 @@ def generate_chapter_content(chapter):
         - CODE → code examples (must include "language" and "explanation").
         - TIP → best practices, pitfalls, or learning hacks.
         - Keep sections concise but informative.
-        - The final output MUST be valid JSON that matches the following schema:
+
+        IMPORTANT:
+        - Return ONLY valid JSON (no markdown, no ```json fences).
+        - Escape quotes properly.
+        - Do NOT use triple quotes. Use single or double quotes only.
+        - Follow this schema strictly:
+
         {format_instructions}
         """),
-
         ("human", """Expand the following chapter into structured sections:
 
         Chapter {chapter_number}: {chapter_title}
@@ -81,36 +89,63 @@ def generate_chapter_content(chapter):
         Estimated Duration: {estimated_duration} minutes
         """)
     ]).partial(format_instructions=parser.get_format_instructions())
-
-    chain = prompt_template | llm | parser
-
-    result = chain.invoke({
-        "chapter_number": chapter.chapter_number,
-        "chapter_title": chapter.title,
-        "chapter_description": chapter.description,
-        "learning_objectives": chapter.learning_objectives,
-        "estimated_duration": chapter.estimated_duration
-    })
-
+    
+    # Option 1: Use the chain with parser directly and handle errors manually
+    try:
+        chain = prompt_template | llm | parser
+        result = chain.invoke({
+            "chapter_number": chapter.chapter_number,
+            "chapter_title": chapter.title,
+            "chapter_description": chapter.description,
+            "learning_objectives": chapter.learning_objectives,
+            "estimated_duration": chapter.estimated_duration
+        })
+    except Exception as e:
+        logger.warning(f"Parser failed, attempting to fix: {e}")
+        # If parsing fails, use OutputFixingParser
+        fixing_parser = OutputFixingParser.from_llm(parser=parser, llm=llm)
+        # Get the raw LLM output first
+        chain_without_parser = prompt_template | llm
+        raw_output = chain_without_parser.invoke({
+            "chapter_number": chapter.chapter_number,
+            "chapter_title": chapter.title,
+            "chapter_description": chapter.description,
+            "learning_objectives": chapter.learning_objectives,
+            "estimated_duration": chapter.estimated_duration
+        })
+        # Now pass the string to the fixing parser
+        result = fixing_parser.parse(raw_output.content)
+    
     logger.info(f"Generated chapter content with {len(result.sections)} sections")
     return result
 
 
-def generate_course_handler(course):
+async def generate_course_handler(course):
     logger.info(f"Starting course generation for: {course.name}")
 
     # Step 1: Generate course outline
-    result = generate_course_outline(course.name, course.target_audiunce, course.difficulty, course.duration)
+    result = generate_course_outline(
+        course.name,
+        course.target_audiunce,
+        course.difficulty,
+        course.duration,
+    )
 
     # Step 2: Save course to DB
     course_obj = create_course(result)
     logger.info(f"Saved course '{course_obj.title}' with id={course_obj.id} to DB")
 
-    # Step 3: Expand and save chapters
-    for chapter in result.chapters:
+    # Step 3: Expand and save chapters with throttling
+    for i, chapter in enumerate(result.chapters, start=1):
         chapter_content = generate_chapter_content(chapter)
         create_chapter(course_obj.id, chapter, chapter_content)
         logger.info(f"Saved chapter {chapter.chapter_number} ('{chapter.title}') to DB")
 
+            
+        # Rate limit: 3 chapters/minute → wait 20s after each chapter
+        logger.info("Waiting 20s before next chapter...")
+        await asyncio.sleep(20)  # spread out within the minute
+
     logger.info(f"Course generation complete for: {course.name}")
     return course_obj
+

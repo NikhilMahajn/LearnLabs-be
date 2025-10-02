@@ -1,4 +1,6 @@
 from fastapi import APIRouter,Response,HTTPException
+import asyncio
+
 from app.schemas.course import CourseCreateRequest,CourseResponse,ChapterResponse
 from app.db.course import list_courses,get_course,get_chapters,get_sections
 from app.services.course_generation import generate_course_handler
@@ -8,10 +10,9 @@ course_router = APIRouter(prefix="/course")
 
 
 @course_router.post('/create')
-def create(course: CourseCreateRequest):
-    
-    respose = generate_course_handler(course)
-    return Response('Course Generation Successfull')
+async def create(course: CourseCreateRequest):
+    asyncio.create_task(generate_course_handler(course))
+    return Response('Course Generation Started')
 
 @course_router.get('/')
 def get_courses():

@@ -1,0 +1,53 @@
+project/
+│── app/
+│   ├── main.py                 # Entry point (FastAPI instance, middleware, startup events)
+│   ├── core/                   # Core configuration and utilities
+│   │   ├── config.py           # App settings (from .env or pydantic BaseSettings)
+│   │   ├── security.py         # Security/JWT utils
+│   │   └── logging.py          # Logging config
+│   │
+│   ├── api/                    # Routers (organized by feature/domain)
+│   │   ├── v1/                 
+│   │   │   ├── routes_users.py # Example: user routes
+│   │   │   ├── routes_auth.py  # Example: auth routes
+│   │   │   └── __init__.py
+│   │   └── __init__.py
+│   │
+│   ├── models/                 # SQLAlchemy or ODM models
+│   │   ├── user.py
+│   │   ├── post.py
+│   │   └── __init__.py
+│   │
+│   ├── schemas/                # Pydantic models (request/response validation)
+│   │   ├── user.py
+│   │   ├── post.py
+│   │   └── __init__.py
+│   │
+│   ├── services/               # Business logic (auth, payments, etc.)
+│   │   ├── user_service.py
+│   │   └── post_service.py
+│   │
+│   ├── repositories/           # Database access layer (CRUD functions)
+│   │   ├── user_repo.py
+│   │   └── post_repo.py
+│   │
+│   ├── db/                     # Database initialization
+│   │   ├── base.py             # Base metadata
+│   │   ├── session.py          # DB session creation
+│   │   └── migrations/         # Alembic migrations
+│   │
+│   ├── tests/                  # Unit & integration tests
+│   │   ├── conftest.py
+│   │   ├── test_users.py
+│   │   └── test_auth.py
+│   │
+│   └── utils/                  # Helper functions
+│       ├── email.py
+│       ├── cache.py
+│       └── __init__.py
+│
+├── .env                        # Environment variables
+├── alembic.ini                 # Alembic config (if using SQLAlchemy)
+├── requirements.txt            # Dependencies
+├── pyproject.toml              # (if using poetry/pdm instead of pip)
+└── README.md
