@@ -6,8 +6,23 @@ from sqlalchemy import (
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
+from datetime import datetime
 Base = declarative_base()
 
+
+class User(Base):
+    __tablename__ = "users"
+    
+    id = Column(Integer, primary_key=True)
+    username = Column(String, unique=True, nullable=False, index=True)
+    email = Column(String, unique=True, nullable=False, index=True)
+    hashed_password = Column(String, nullable=False)
+    full_name = Column(String, nullable=True)
+    is_active = Column(Boolean, default=True)
+    is_admin = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
 class Course(Base):
     __tablename__ = "courses"
     id = Column(Integer, primary_key=True)
@@ -61,3 +76,12 @@ class Section(Base):
         back_populates="sections",
         passive_deletes=True
     )
+
+class Otp(Base):
+    __tablename__ = "otp"
+    id = Column(Integer, primary_key=True)
+    email = Column(String, nullable=False, index=True)
+    otp = Column(String(6), nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    expires_at = Column(DateTime, nullable=False)
+
