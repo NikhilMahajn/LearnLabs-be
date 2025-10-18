@@ -10,6 +10,11 @@ from jose import jwt, JWTError
 from jose.exceptions import ExpiredSignatureError
 import random
 import bcrypt
+from functools import wraps
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi import Depends, HTTPException, status
+
+security = HTTPBearer()
 
 logger = get_logger(__name__)
 SECRET_KEY = os.environ.get("JWT_SECRET_KEY")
@@ -97,17 +102,31 @@ def find_user(identifier):
         logger.error(f"Error finding user: {str(e)}")
         raise
 
-def hash_password(password):
+def hash_password(password: str) -> str:
+    """
+    Hash a plaintext password using bcrypt and return a UTF-8 string.
+    """
     try:
         password_bytes = password.encode('utf-8')
         salt = bcrypt.gensalt()
-        hashed_password = bcrypt.hashpw(password_bytes, salt).decode('utf-8')
-        return hashed_password
-
+        hashed_bytes = bcrypt.hashpw(password_bytes, salt)
+        return hashed_bytes.decode('utf-8')
     except Exception as e:
-        session.rollback()
-        logger.error(f"Error finding user: {str(e)}")
+        logger.error(f"Error hashing password: {str(e)}")
         raise
+
+
+def verify_password(password: str, hashed_password: str) -> bool:
+    """
+    Compare a plaintext password with a hashed one (returns True or False).
+    """
+    try:
+        # bcrypt.checkpw expects both arguments as bytes
+        return bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8'))
+    except Exception as e:
+        logger.error(f"Error in password matching: {str(e)}")
+        raise
+
 
 def create_token(data: dict, expires_delta: Optional[timedelta] = None):
     """
@@ -232,212 +251,18 @@ def get_optional_user_from_event(event):
         logger.warning(f"Error in optional user extraction: {str(e)}")
         return None
 
-def require_auth(handler_function):
-    """
-    Decorator to require authentication for Lambda handlers
-    """
-    @wraps(handler_function)
-    def wrapper(event, context):
-        try:
-            # Extract token from Authorization header
-            headers = event.get('headers', {})
-            auth_header = headers.get('authorization') or headers.get('Authorization')
-            
-            if not auth_header:
-                return {
-                    'statusCode': 401,
-                    'headers': {'Content-Type': 'application/json'},
-                    'body': json.dumps({
-                        'message': 'Missing authentication token',
-                        'error_type': 'missing_token'
-                    })
-                }
-            
-            if not auth_header.startswith('Bearer '):
-                return {
-                    'statusCode': 401,
-                    'headers': {'Content-Type': 'application/json'},
-                    'body': json.dumps({
-                        'message': 'Invalid authentication header format',
-                        'error_type': 'invalid_header'
-                    })
-                }
-            
-            token = auth_header.split(' ')[1]
-            if not token:
-                return {
-                    'statusCode': 401,
-                    'headers': {'Content-Type': 'application/json'},
-                    'body': json.dumps({
-                        'message': 'Missing authentication token',
-                        'error_type': 'missing_token'
-                    })
-                }
-            
-            # Verify token
-            payload, error = verify_token(token)
-            
-            if error or not payload:
-                return {
-                    'statusCode': 401,
-                    'headers': {'Content-Type': 'application/json'},
-                    'body': json.dumps({
-                        'message': error.get('message', 'Authentication failed') if error else 'Invalid token',
-                        'error_type': error.get('error', 'token_invalid') if error else 'token_invalid'
-                    })
-                }
-            
-            # Add user info to event for the handler
-            event['user'] = payload
-            return handler_function(event, context)
-            
-        except Exception as e:
-            logger.error(f"Authentication error in require_auth: {str(e)}")
-            return {
-                'statusCode': 500,
-                'headers': {'Content-Type': 'application/json'},
-                'body': json.dumps({
-                    'message': 'Internal authentication error',
-                    'error_type': 'auth_error'
-                })
-            }
-    
-    return wrapper
+def require_auth(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    token = credentials.credentials
+    payload = verify_token(token)
+    if not payload or payload.get("error") :
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=payload.get("message") if payload else "Invalid token"
+        )
+    return payload  # will be available in route
 
-def require_role(allowed_roles):
-    """
-    Decorator to require specific user role(s) for Lambda handlers.
-    Must be used with the require_auth decorator.
-    
-    Args:
-        allowed_roles: String or list of strings representing allowed roles
-        
-    Returns:
-        Decorator function that checks if the user has the required role
-    """
-    if isinstance(allowed_roles, str):
-        allowed_roles = [allowed_roles]
-        
-    def decorator(handler_function):
-        @wraps(handler_function)
-        def wrapper(event, context):
-            try:
-                # Ensure user is authenticated (require_auth should have run first)
-                if 'user' not in event or event['user'] is None:
-                    logger.warning("require_role called without proper authentication")
-                    return {
-                        'statusCode': 401,
-                        'headers': {'Content-Type': 'application/json'},
-                        'body': json.dumps({
-                            'message': 'Authentication required',
-                            'error_type': 'not_authenticated'
-                        })
-                    }
-                
-                user_payload = event['user']
-                if not isinstance(user_payload, dict):
-                    logger.error(f"Invalid user payload type: {type(user_payload)}")
-                    return {
-                        'statusCode': 401,
-                        'headers': {'Content-Type': 'application/json'},
-                        'body': json.dumps({
-                            'message': 'Invalid authentication data',
-                            'error_type': 'invalid_user_data'
-                        })
-                    }
-                
-                user_role = user_payload.get('role')
-                if not user_role:
-                    logger.warning(f"User payload missing role: {user_payload}")
-                    return {
-                        'statusCode': 403,
-                        'headers': {'Content-Type': 'application/json'},
-                        'body': json.dumps({
-                            'message': 'User role not found',
-                            'error_type': 'missing_role'
-                        })
-                    }
-                
-                if user_role not in allowed_roles:
-                    logger.warning(f"User role '{user_role}' not in allowed roles: {allowed_roles}")
-                    return {
-                        'statusCode': 403,
-                        'headers': {'Content-Type': 'application/json'},
-                        'body': json.dumps({
-                            'message': f'Access denied. Required role: {", ".join(allowed_roles)}. Your role: {user_role}',
-                            'error_type': 'insufficient_permissions'
-                        })
-                    }
-                
-                return handler_function(event, context)
-                
-            except Exception as e:
-                logger.error(f"Authorization error in require_role: {str(e)}")
-                return {
-                    'statusCode': 500,
-                    'headers': {'Content-Type': 'application/json'},
-                    'body': json.dumps({
-                        'message': 'Internal authorization error',
-                        'error_type': 'auth_error'
-                    })
-                }
-        
-        return wrapper
-    
-    return decorator
 
-def current_user(func: Callable):
-    """
-    Decorator to extract the current logged-in user and add it to the function arguments.
-    
-    This decorator can be used with or without authentication.
-    
-    Args:
-        func: The function to be decorated
-        
-    Returns:
-        Wrapped function with optional current user added as an argument
-    """
-    @wraps(func)
-    def wrapper(event, context, *args, **kwargs):
-        # Try to get the user from the token
-        current_user = None
-        
-        try:
-            # Check for authorization header (case-insensitive)
-            headers = event.get('headers', {})
-            auth_header = headers.get('authorization') or headers.get('Authorization')
-            
-            if auth_header and auth_header.startswith('Bearer '):
-                # Extract and verify token
-                token = auth_header.split(' ')[1]
-                if token:
-                    payload, error = verify_token(token)
-                    
-                    # If token is valid, find the user
-                    if payload and not error:
-                        user_identifier = payload.get('sub') or payload.get('user_id')
-                        if user_identifier:
-                            if '@' in str(user_identifier):
-                                current_user = find_user(email=user_identifier)
-                            else:
-                                try:
-                                    user_id = int(user_identifier)
-                                    current_user = find_user(id=user_id)
-                                except (ValueError, TypeError):
-                                    current_user = find_user(email=user_identifier)
-        except Exception as e:
-            # If any error occurs during token verification or user lookup, 
-            # we'll just continue without a user
-            logger.debug(f"Optional user extraction failed: {str(e)}")
-        
-        # Add current_user to kwargs, which will be None if no valid user found
-        kwargs['current_user'] = current_user
-        
-        # Call the original function
-        return func(event, context, *args, **kwargs)
-    
-    return wrapper
+
 
 def validate_jwt_secret():
     """

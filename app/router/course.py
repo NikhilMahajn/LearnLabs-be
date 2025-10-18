@@ -1,10 +1,10 @@
-from fastapi import APIRouter,Response,HTTPException
+from fastapi import APIRouter,Response,HTTPException, Depends
 import asyncio
 
 from app.schemas.course import CourseCreateRequest,CourseResponse,ChapterResponse
 from app.db.course import list_courses,get_course,get_chapters,get_sections
 from app.services.course_generation import generate_course_handler
-
+from app.db.auth import require_auth
 
 course_router = APIRouter(prefix="/course")
 
@@ -18,8 +18,9 @@ async def create(course: CourseCreateRequest):
 def get_courses():
     return list_courses()
 
+
 @course_router.get('/{course_id}')
-def get_course_by_id(course_id):
+def get_course_by_id(course_id,user = Depends(require_auth)):
     if course_id is None:
         raise HTTPException(status_code=400, detail="course_id cannot be null")
     try:
@@ -29,7 +30,8 @@ def get_course_by_id(course_id):
         return response
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
-    
+
+
 @course_router.get('/chapters/{course_id}')
 def get_chapters_by_course(course_id:int):
     if course_id is None:

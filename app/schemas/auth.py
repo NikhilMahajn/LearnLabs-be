@@ -4,9 +4,6 @@ from typing import List, Optional
 class User(BaseModel):    
     username: str
     email : str
-    full_name :str
-    is_active : Optional[bool]
-    is_admin : Optional[bool]
     otp : str
     password : str
  
@@ -14,3 +11,7 @@ class User(BaseModel):
     full_name: Optional[str] = None
     is_active: bool = True
     is_admin: bool = False         
+
+class UserLogin(BaseModel):
+    identifier : str
+    password : str
