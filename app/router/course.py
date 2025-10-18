@@ -20,7 +20,7 @@ def get_courses():
 
 
 @course_router.get('/{course_id}')
-def get_course_by_id(course_id,user = Depends(require_auth)):
+def get_course_by_id(course_id):
     if course_id is None:
         raise HTTPException(status_code=400, detail="course_id cannot be null")
     try:
