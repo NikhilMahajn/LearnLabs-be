@@ -10,7 +10,8 @@ class User(BaseModel):
     id: Optional[int] = None
     full_name: Optional[str] = None
     is_active: bool = True
-    is_admin: bool = False         
+    is_admin: bool = False     
+    otp: Optional[int] = None
 
 class UserLogin(BaseModel):
     identifier : str

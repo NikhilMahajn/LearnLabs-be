@@ -20,15 +20,15 @@ async def send_otp_handler(email: str = Body(..., embed=True)):
 @auth_router.post('/signup')
 async def signup(user: User):
 
-    if not user.email or not user.otp or not user.username:
+    if not user.email or not user.username:
         raise HTTPException(status_code=400, detail="Missing required fields")
     
     # Verify OTP
-    if not verify_user(user.email, user.otp):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid or expired OTP"
-        )
+#    if not verify_user(user.email, user.otp):
+#        raise HTTPException(
+#            status_code=status.HTTP_400_BAD_REQUEST,
+#            detail="Invalid or expired OTP"
+#        )
     
     existing_user = find_user(user.email)
     if existing_user:
