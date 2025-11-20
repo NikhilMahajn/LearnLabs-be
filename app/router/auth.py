@@ -76,8 +76,8 @@ async def login(request: UserLogin):
     
     if not verify_password(request.password,user.hashed_password):
         raise HTTPException(
-            status_code = status.HTTP_500_INTERNAL_SERVER_ERROR,
-            details = "Password incorrect"
+            status_code = 401,
+            detail = "Password incorrect"
         )
         
     token_data = {"sub": user.username, "user_id": user.id}
