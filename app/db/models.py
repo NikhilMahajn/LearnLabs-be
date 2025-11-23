@@ -23,6 +23,8 @@ class User(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
+    progress = relationship("UserProgress", back_populates="user", cascade="all, delete-orphan")
+    
 class Course(Base):
     __tablename__ = "courses"
     id = Column(Integer, primary_key=True)
@@ -38,6 +40,7 @@ class Course(Base):
         cascade="all, delete-orphan",
         passive_deletes=True
     )
+    progress = relationship("UserProgress", back_populates="course", cascade="all, delete-orphan")
 
 class Chapter(Base):
     __tablename__ = "chapters"
@@ -60,6 +63,7 @@ class Chapter(Base):
         cascade="all, delete-orphan",
         passive_deletes=True
     )
+    progress = relationship("UserProgress", back_populates="chapter", cascade="all, delete-orphan")
 
 class Section(Base):
     __tablename__ = "sections"
@@ -85,3 +89,21 @@ class Otp(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     expires_at = Column(DateTime, nullable=False)
 
+class UserProgress(Base):
+    __tablename__ = "user_progress"
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    course_id = Column(Integer, ForeignKey("courses.id"), nullable=False)
+    chapter_id = Column(Integer,ForeignKey("chapters.id"),nullable=False)
+
+    status = Column(Boolean,default=False)
+    completed_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    user = relationship("User", back_populates="progress")
+    course = relationship("Course", back_populates="progress")
+    chapter = relationship("Chapter",back_populates="progress")
+    
+    
+    
