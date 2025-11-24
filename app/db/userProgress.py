@@ -28,5 +28,12 @@ def save_progress(progress: UserProgressRequest):
         session.rollback()
         raise e
 
-		
+
+def get_completed_chapters(user_id,course_id):
+    completed_chapters = session.query(UserProgress).filter(
+        UserProgress.user_id == user_id,
+        UserProgress.course_id == course_id
+    ).all()
+    
+    return completed_chapters
 
