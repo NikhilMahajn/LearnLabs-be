@@ -33,6 +33,7 @@ class Course(Base):
     level = Column(String)
     total_chapters = Column(Integer)
     duration = Column(Integer)
+    slug = Column(String,unique=True)
 
     chapters = relationship(
         "Chapter",
@@ -105,5 +106,34 @@ class UserProgress(Base):
     course = relationship("Course", back_populates="progress")
     chapter = relationship("Chapter",back_populates="progress")
     
-    
-    
+class Roadmap(Base):
+    __tablename__ = "roadmaps"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    slug = Column(String, unique=True, nullable=False)
+    description = Column(Text)
+    difficulty = Column(String)
+
+    roadmap_step_relation = relationship(
+        "RoadmapStep",
+        back_populates="roadmap",
+        cascade="all, delete-orphan"
+    )
+
+
+class RoadmapStep(Base):
+    __tablename__ = "roadmap_steps"
+
+    id = Column(Integer, primary_key=True)
+    roadmap_id = Column(Integer, ForeignKey("roadmaps.id"))
+    title = Column(String, nullable=False)
+    description = Column(Text)
+    topic_slug = Column(String, nullable=False)
+    order_index = Column(Integer)
+    course_id = Column(Integer, ForeignKey("courses.id"), nullable=True)
+
+    roadmap = relationship(
+        "Roadmap",
+        back_populates="roadmap_step_relation"
+    )

@@ -2,12 +2,15 @@ from fastapi import FastAPI
 from .router.course import course_router
 from .router.auth import auth_router
 from .router.userProgress import progress_router
+from .router.roadmap import roadmap_router
 from app.core.config import setup_cors
 app = FastAPI()
 
 app.include_router(course_router)
 app.include_router(auth_router)
 app.include_router(progress_router)
+app.include_router(roadmap_router)
+
 #cors setup
 setup_cors(app)
 

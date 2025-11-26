@@ -39,6 +39,7 @@ class Chapter(BaseModel):
 class CourseOutline(BaseModel):
     """Model for complete course outline"""
     course_title: str = Field(description="Title of the course")
+    course_slug: str = Field(description="unique slug name for course")
     course_description: str = Field(description="Brief course description")
     level: str = Field(description="Level of course")
     total_chapters: int = Field(description="Total number of chapters")
