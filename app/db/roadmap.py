@@ -50,17 +50,49 @@ def get_roadmaps():
     except Exception as e:
         raise e
     
-def get_roadmap_by_id(roadmap_id):
+def get_roadmap_by_id(roadmap_id: int):
     try:
         roadmap = (
-			session.query(Roadmap)
-			.filter(Roadmap.id == roadmap_id).first()
+            session.query(Roadmap)
+            .filter(Roadmap.id == roadmap_id)
+            .first()
+        )
+
+        if not roadmap:
+            return None
+
+        roadmap_dict = {
+			"id": roadmap.id,
+            "name": roadmap.name,
+            "slug": roadmap.slug,
+            "description": roadmap.description,
+            "difficulty": roadmap.difficulty
+		}
+        steps = (
+			session.query(RoadmapStepModel)
+			.filter(RoadmapStepModel.roadmap_id == roadmap_id)
+			.order_by(RoadmapStepModel.order_index)
+   			.all()
     	)
-        return roadmap
-    
+        roadmap_dict["steps"] = [
+            {
+                "id": step.id,
+				"roadmap_id": step.roadmap_id,
+				"title": step.title,
+				"description": step.description,
+				"topic_slug": step.topic_slug,
+				"order_index": step.order_index,
+				"course_id": step.course_id
+    		} for step in steps]
+
+        return roadmap_dict
 
     except Exception as e:
+        print("Error fetching roadmap:", e)
         raise e
+    finally:
+        session.close()
+
 
 def get_roadmap_steps_by_id(roadmap_id):
     try:
