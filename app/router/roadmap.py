@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 from app.schemas.roadmap import RoadmapCreateRequest
 from app.services.roadmap_generation import generate_roadmap_handler
-from app.db.roadmap import get_roadmaps,get_roadmap_by_id,get_roadmap_steps_by_id
+from app.db.roadmap import get_roadmaps,get_roadmap_by_id,get_roadmap_steps_by_id,get_roadmap_by_slug
 roadmap_router = APIRouter(prefix="/roadmap")
 
 @roadmap_router.post("/create")
@@ -16,6 +16,10 @@ def get_roadmap_handler():
 @roadmap_router.get("/get-roadmap/{roadmap_id}")
 def get_roadmap_handler(roadmap_id: int):
     return get_roadmap_by_id(roadmap_id)
+
+@roadmap_router.get("/get-roadmap-slug/{roadmap_slug}")
+def get_roadmap_slug_handler(roadmap_slug: str):
+    return get_roadmap_by_slug(roadmap_slug)
 
 @roadmap_router.get("/get-roadmap-steps/{roadmap_id}")
 def get_roadmap_steps_handler(roadmap_id: int):
