@@ -2,7 +2,7 @@ from fastapi import APIRouter,Response,HTTPException, Depends
 import asyncio
 
 from app.schemas.course import CourseCreateRequest,CourseResponse,ChapterResponse
-from app.db.course import list_courses,get_course,get_chapters,get_sections
+from app.db.course import list_courses,get_course,get_chapters,get_sections,get_course_by_slug
 from app.services.course_generation import generate_course_handler
 from app.db.auth import require_auth
 
@@ -56,3 +56,20 @@ def get_sections_by_chapter(chapter_id:int):
         return response
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
+    
+    
+@course_router.get('/get-course-slug/{course_slug}')
+def get_course_by_slug_handler(course_slug):
+    if not course_slug:
+        raise HTTPException(status_code=400, detail="course_slug cannot be null")
+    try:
+        response = get_course_by_slug(course_slug)
+        if not response:
+            raise HTTPException(status_code=404, detail="course not found")
+        return response
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
+
+
+    
+    

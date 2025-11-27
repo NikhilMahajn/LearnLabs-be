@@ -63,3 +63,7 @@ def get_sections(chapter_id):
     print("searching chapter id",chapter_id)
     sections = session.query(Section).filter(Section.chapter_id == chapter_id).all()
     return sections
+
+def get_course_by_slug(course_slug):
+    course = session.query(Course).filter(Course.slug == course_slug).first()
+    return course
