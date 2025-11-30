@@ -1,6 +1,7 @@
 from .db import session
 from app.schemas.course import CourseOutline,Chapter,DetailedChapter,Section
 from .models import Course,Chapter,Section
+from slugify import slugify
 
 
 def create_course(course:CourseOutline):
@@ -11,6 +12,7 @@ def create_course(course:CourseOutline):
         duration=course.duration,
         total_chapters = course.total_chapters
     )
+    new_course.slug = slugify(course.course_title)
     session.add(new_course)
     session.commit()
     

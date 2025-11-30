@@ -3,6 +3,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain.output_parsers import PydanticOutputParser
 from langchain.output_parsers import OutputFixingParser
 
+
 import asyncio
 
 from app.schemas.course import CourseOutline,DetailedChapter
@@ -51,6 +52,7 @@ def generate_course_outline(name, target_audiunce="Beginner", difficulty="Easy",
         "difficulty_level": difficulty,
         "course_duration": duration
     })
+    
 
     logger.info(f"Generated course outline with {len(result.chapters)} chapters")
     return result
@@ -130,7 +132,6 @@ async def generate_course_handler(course):
         course.difficulty,
         course.duration,
     )
-
     # Step 2: Save course to DB
     course_obj = create_course(result)
     logger.info(f"Saved course '{course_obj.title}' with id={course_obj.id} to DB")

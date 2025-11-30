@@ -48,10 +48,11 @@ class CourseOutline(BaseModel):
     
 class CourseCreateRequest(BaseModel):
     name: str
-    target_audiunce: str
-    difficulty: str
-    duration: str
+    target_audiunce: str | None = "Begginer"
+    difficulty: str 
+    duration: str | None = "1"
     description: str | None = None  # optional
+    slug : str | None = None
 
 class CourseResponse(BaseModel):
     id: int
