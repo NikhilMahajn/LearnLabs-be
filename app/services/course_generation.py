@@ -30,6 +30,7 @@ def generate_course_outline(name, target_audiunce="Beginner", difficulty="Easy",
     Your task is to create a complete, well-structured course outline.
 
     Guidelines:
+    - Course Name is same as course topic
     - The course should have a logical progression.
     - Each chapter should build on the previous one.
     - Learning objectives must be actionable and clear.
