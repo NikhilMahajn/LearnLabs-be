@@ -1,4 +1,4 @@
-from fastapi import APIRouter,Response,HTTPException, Depends
+from fastapi import APIRouter,Response,HTTPException, Depends,Query
 import asyncio
 
 
@@ -66,18 +66,28 @@ def get_sections_by_chapter(chapter_id:int):
     
     
 @course_router.get('/get-course-slug/{course_slug}')
-async def get_course_by_slug_handler(course_slug: str, roadmap_slug: str = None):
+async def get_course_by_slug_handler(
+    course_slug: str,
+    roadmap_slug: str = Query(None)
+):
     if not course_slug:
         raise HTTPException(status_code=400, detail="course_slug cannot be null")
+
     try:
         response = get_course_by_slug(course_slug)
+
         if not response:
+            if not roadmap_slug:
+                raise HTTPException(status_code=404, detail="Roadmap slug is required")
+
             roadmap = get_roadmap_by_slug(roadmap_slug)
             course = CourseCreateRequest(
-                name = reverse_slugify(course_slug),
-                difficulty = roadmap.get("difficulty")
+                name=reverse_slugify(course_slug),
+                difficulty=roadmap.get("difficulty")
             )
             return await create(course)
+
         return response
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")

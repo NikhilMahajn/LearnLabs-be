@@ -3,7 +3,6 @@ from app.schemas.roadmap import RoadmapOutline,RoadmapStep
 from app.db.models import Roadmap,RoadmapStep  as RoadmapStepModel
 from .db import session
 
-
 def create_roadmap(payload: RoadmapOutline):
     try:
         new_roadmap = Roadmap(
