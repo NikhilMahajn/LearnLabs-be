@@ -1,12 +1,10 @@
-
 # LearnLabs Backend
 
 AI-powered backend API for generating personalized courses, tutorials, and developer roadmaps using LangChain and Groq LLM.
 
 🔗 **Frontend**: [https://learn-labs-fe.vercel.app/](https://learn-labs-fe.vercel.app/)
 
-🔗 **Frontend Repository**: [Link ](https://github.com/NikhilMahajn/LearnLabs-fe)
-
+🔗 **Frontend Repository**: [https://github.com/NikhilMahajn/LearnLabs-fe](https://github.com/NikhilMahajn/LearnLabs-fe)
 
 ## Overview
 
@@ -61,10 +59,12 @@ poetry install
 
 4. Create a `.env` file in the root directory:
 ```env
+DB_URI=your_database_uri_here
 GROQ_API_KEY=your_groq_api_key_here
-MODEL_NAME=mixtral-8x7b-32768
-ENVIRONMENT=development
-CORS_ORIGINS=http://localhost:5173,https://learn-labs-fe.vercel.app
+JWT_SECRET_KEY=your_jwt_secret_key_here
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+REFRESH_TOKEN_EXPIRE_DAYS=7
 ```
 
 5. Run the development server:
@@ -72,45 +72,47 @@ CORS_ORIGINS=http://localhost:5173,https://learn-labs-fe.vercel.app
 uvicorn main:app --reload
 # or
 python main.py
-
-# For Logs 
+```
 
 6. Open [http://localhost:8000/docs](http://localhost:8000/docs) to view the interactive API documentation
 
+## Alembic Commands
 
-
-## Alembic command
-alembic revision --autogenerate -m "comment"
-
+Run database migrations:
+```bash
+alembic revision --autogenerate -m "your migration message"
+alembic upgrade head
+```
 
 ## Project Structure
 ```
-├── main.py                             # Application entry point
-├── app/                
-│   ├── router/                         # API routes
-│   │   └── apis.py                     # Endpoint modules
-│   ├── core/                           # Core configuration
-│   │   ├── config.py                   # Settings and environment variables
-│   │   └── security.py                 # Security utilities
-│   ├── models/                         # Pydantic models
-│   ├── services/                       # Business logic
-│   │   ├── Course_generation.py        # Course generation service
-│   │   └── roadmap_generation.py       # Roadmap generation service
-│   └── utils/                          # Utility functions
-├── requirements.txt                    # Python dependencies
-└── .env.example                        # Environment variables template
+.
+├── main.py                          # Application entry point
+├── app/
+│   ├── router/
+│   │   └── apis.py                 # API endpoint modules
+│   ├── core/
+│   │   ├── config.py               # Settings and environment variables
+│   │   └── security.py             # Security utilities
+│   ├── models/                     # Pydantic models
+│   ├── services/
+│   │   ├── Course_generation.py   # Course generation service
+│   │   └── roadmap_generation.py  # Roadmap generation service
+│   └── utils/                      # Utility functions
+├── requirements.txt                # Python dependencies
+└── .env.example                    # Environment variables template
 ```
 
 ## Environment Variables
 
-DB_URI=
-GROQ_API_KEY=
-
-
-JWT_SECRET_KEY=
-ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=
-REFRESH_TOKEN_EXPIRE_DAYS=
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `DB_URI` | Database connection string | Yes |
+| `GROQ_API_KEY` | Your Groq API key | Yes |
+| `JWT_SECRET_KEY` | Secret key for JWT tokens | Yes |
+| `ALGORITHM` | JWT algorithm (default: HS256) | Yes |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | Access token expiration time | Yes |
+| `REFRESH_TOKEN_EXPIRE_DAYS` | Refresh token expiration time | Yes |
 
 ## Development
 
@@ -132,10 +134,6 @@ isort .
 flake8
 pylint app/
 ```
-
-## Deployment
-
-
 
 ## Contributing
 
@@ -159,4 +157,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ---
 
-Built with ❤️ by the [Nikil Mahajan](https://nikhilmahajan.vercel.app)
+Built with ❤️ by [Nikhil Mahajan](https://nikhilmahajan.vercel.app)
